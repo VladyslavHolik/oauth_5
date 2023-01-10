@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign up</title>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+<main id="main-holder">
+  <a href="/" id="login">Login</a>
+
+  <h1 id="signup-header">Sign Up</h1>
+
+  <div id="signup-error-msg-holder">
+    <p id="signup-error-msg">Invalid data <span id="error-msg-second-line">and/or password</span></p>
+  </div>
+
+  <form id="signup-form" action="/api/signup" method="post">
+    <input type="text" name="name" id="name-field" class="signup-form-field" placeholder="Name">
+    <input type="text" name="nickname" id="nickname-field" class="signup-form-field" placeholder="Nickname">
+    <input type="email" name="login" id="email-field" class="signup-form-field" placeholder="Email">
+    <input type="password" name="password" id="password-field" class="signup-form-field" placeholder="Password">
+    <input type="submit" value="Sign Up" id="signup-form-submit">
+  </form>
+
+</main>
+</body>
+
+
+<style>
+  html {
+    height: 100%;
+  }
+
+  body {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    background-color: #3a3a3a;
+  }
+
+  #main-holder {
+    width: 50%;
+    height: 70%;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    background-color: white;
+    border-radius: 7px;
+    box-shadow: 0px 0px 5px 2px black;
+  }
+
+  #signup-error-msg-holder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+  }
+
+  #signup-error-msg {
+    width: 23%;
+    text-align: center;
+    margin: 0;
+    padding: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #8a0000;
+    border: 1px solid #8a0000;
+    background-color: #e58f8f;
+    opacity: 0;
+  }
+
+  #error-msg-second-line {
+    display: block;
+  }
+
+  #signup-form {
+    align-self: flex-start;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+  }
+
+  .signup-form-field::placeholder {
+    color: #3a3a3a;
+  }
+
+  .signup-form-field {
+    border: none;
+    border-bottom: 1px solid #3a3a3a;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    outline: none;
+    padding: 0px 0px 5px 5px;
+  }
+
+  #signup-form-submit {
+    width: 100%;
+    padding: 7px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    background-color: #3a3a3a;
+    cursor: pointer;
+    outline: none;
+  }
+</style>
+
+<script>
+  const signupForm = document.getElementById("signup-form");
+  const signupButton = document.getElementById("signup-form-submit");
+  const signupErrorMsg = document.getElementById("signup-error-msg");
+
+  signupButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const name = signupForm.name.value;
+    const nickname = signupForm.nickname.value;
+    const login = signupForm.login.value;
+    const password = signupForm.password.value;
+
+    axios({
+      method: 'post',
+      url: '/api/signup',
+      data: {
+        login,
+        password,
+        name,
+        nickname
+      }
+    }).then((response) => {
+      if (response.data.redirect === '/') {
+        window.location = response.data.redirect;
+      }
+    }).catch((response) => {
+      signupErrorMsg.style.opacity = 1;
+    });
+  })
+</script>
+</html>

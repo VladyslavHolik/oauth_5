@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+<main id="main-holder">
+    <a href="/signup" id="signup">Sign Up</a>
+    <a href="/api/info" id="info">Get Info</a>
+    <a href="/logout" id="logout">Logout</a>
+
+    <h1 id="login-header">Login</h1>
+
+    <div id="login-error-msg-holder">
+        <p id="login-error-msg">Invalid username <span id="error-msg-second-line">and/or password</span></p>
+    </div>
+
+    <form id="login-form" action="/api/login" method="post">
+        <input type="text" name="username" id="username-field" class="login-form-field" placeholder="Username">
+        <input type="password" name="password" id="password-field" class="login-form-field" placeholder="Password">
+        <input type="submit" value="Login" id="login-form-submit">
+    </form>
+
+</main>
+</body>
+
+
+<style>
+    html {
+        height: 100%;
+    }
+
+    #logout {
+        opacity: 0;
+    }
+
+    body {
+        height: 100%;
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        background-color: #3a3a3a;
+    }
+
+    #main-holder {
+        width: 50%;
+        height: 70%;
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        background-color: white;
+        border-radius: 7px;
+        box-shadow: 0px 0px 5px 2px black;
+    }
+
+    #login-error-msg-holder {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        justify-items: center;
+        align-items: center;
+    }
+
+    #login-error-msg {
+        width: 23%;
+        text-align: center;
+        margin: 0;
+        padding: 5px;
+        font-size: 12px;
+        font-weight: bold;
+        color: #8a0000;
+        border: 1px solid #8a0000;
+        background-color: #e58f8f;
+        opacity: 0;
+    }
+
+    #error-msg-second-line {
+        display: block;
+    }
+
+    #login-form {
+        align-self: flex-start;
+        display: grid;
+        justify-items: center;
+        align-items: center;
+    }
+
+    .login-form-field::placeholder {
+        color: #3a3a3a;
+    }
+
+    .login-form-field {
+        border: none;
+        border-bottom: 1px solid #3a3a3a;
+        margin-bottom: 10px;
+        border-radius: 3px;
+        outline: none;
+        padding: 0px 0px 5px 5px;
+    }
+
+    #login-form-submit {
+        width: 100%;
+        padding: 7px;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        font-weight: bold;
+        background-color: #3a3a3a;
+        cursor: pointer;
+        outline: none;
+    }
+</style>
+
+<script>
+    const access_token = sessionStorage.getItem('access_token');
+    if (access_token) {
+        axios.get('/', {
+            headers: {
+                'Authorization': `Bearer ${access_token}`
+            }
+        }).then((response) => {
+            let {name, email, last_login, logins_count} = response.data;
+
+            if (name) {
+                const mainHolder = document.getElementById("main-holder");
+                const loginHeader = document.getElementById("login-header");
+
+                loginForm.remove();
+                loginErrorMsg.remove();
+                loginHeader.remove();
+
+                mainHolder.append(`Hi ${name}. Email is ${email}. Login count is ${logins_count}`);
+                logoutLink.style.opacity = 1;
+                signupLink.style.opacity = 0;
+            }
+        }).catch(() => {
+            axios.get('/api/refresh', {
+                headers: {
+                    'Refresh': `${sessionStorage.getItem('refresh_token')}`
+                }
+            }).then((refreshResponse) => {
+                sessionStorage.setItem('access_token', refreshResponse.data.access_token)
+                location.reload()
+            })
+        })
+    }
+
+    const loginForm = document.getElementById("login-form");
+    const loginButton = document.getElementById("login-form-submit");
+    const loginErrorMsg = document.getElementById("login-error-msg");
+    const logoutLink = document.getElementById("logout");
+    const signupLink = document.getElementById("signup");
+    const getInfoLink = document.getElementById("info");
+
+    logoutLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
+        location.reload();
+    });
+
+    loginButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        const username = loginForm.username.value;
+        const password = loginForm.password.value;
+
+        axios({
+            method: 'post',
+            url: '/api/login',
+            data: {
+                username,
+                password
+            }
+        }).then((response) => {
+            sessionStorage.setItem('access_token', response.data.access_token)
+            sessionStorage.setItem('refresh_token', response.data.refresh_token)
+            location.reload();
+        }).catch((response) => {
+            loginErrorMsg.style.opacity = 1;
+        });
+    })
+
+    getInfoLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (access_token) {
+            axios.get('/api/info', {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            }).then((response) => {
+                let {name, last_login} = response.data;
+
+                if (name) {
+                    const mainHolder = document.getElementById("main-holder");
+
+                    mainHolder.append(`Get info: last login was on ${last_login}`)
+                    logoutLink.style.opacity = 1;
+                    signupLink.style.opacity = 0;
+                }
+            })
+        }
+    })
+</script>
+</html>
